@@ -24,24 +24,38 @@ dirTree(const char *pathname, const struct stat *sbuf, int type, struct FTW *ftw
         printf("?");
     } else {
         switch (sbuf->st_mode & S_IFMT) {  /* Print file type */
-        case S_IFREG:  printf("-"); break;
-        case S_IFDIR:  printf("d"); break;
+        case S_IFREG:  
+        {
+            printf("%*s",4*ftwb->level, "-"); /* Indent suitably */
+            printf("[DATA TBD]");
+            printf("%s\n",  &pathname[ftwb->base]); 
+            break;
+        }
+        case S_IFDIR:  {
+            printf("%*s",ftwb->level, "|\n"); 
+
+            printf("[DATA TBD]");
+            printf("%s\n",  &pathname[ftwb->base]); 
+
+            printf("%*s",ftwb->level, "|"); 
+            break;
+        }
         case S_IFCHR:  printf("c"); break;
         case S_IFBLK:  printf("b"); break;
         case S_IFLNK:  printf("l"); break;
         case S_IFIFO:  printf("p"); break;
         case S_IFSOCK: printf("s"); break;
-        default:       printf("?"); break; /* Should never happen (on Linux) */
+        default:       break; /* Should never happen (on Linux) */
         }
     }
-
-    if (type != FTW_NS)
-        printf("%7ld ", (long) sbuf->st_ino);
-    else
-        printf("        ");
-	
-    printf(" %*s", 4 * ftwb->level, " ");         /* Indent suitably */
-    printf("%s\n",  &pathname[ftwb->base]);     /* Print basename */
+    // printf("|__");
+    // if (type != FTW_NS){
+    //     printf("%7ld", (long) sbuf->st_ino);   
+    // }
+    // else
+        // printf("        ");
+    // printf("%*s",4*ftwb->level, " ");
+        /* Print basename */ /*TODO: here put stats of the file*/
     return 0;                                   /* Tell nftw() to continue */
 }
 
