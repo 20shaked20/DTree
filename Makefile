@@ -1,15 +1,12 @@
 .PHONY: all
-all: ExampleOne ExampleTwo tree
+all: SpecialTree
 
-ExampleOne: ftw1.c
-		gcc ftw1.c -L. -o ExampleOne
-
-ExampleTwo: ftw2.c
-		gcc ftw2.c -L. -o ExampleTwo
+SpecialTree: stree.c
+		gcc stree.c -L. -o stree
 
 #coder: codec.h our_codec.cpp our_codec.hpp
 #	g++ our_codec.cpp ./libCodec.so -L. -l Codec -o coder -lpthread -ldl
 
 .PHONY: clean
 clean:
-	-rm encoder ExampleOne ExampleTwo 2>/dev/null
+	-rm encoder stree 2>/dev/null
