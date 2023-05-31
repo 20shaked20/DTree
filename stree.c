@@ -25,6 +25,15 @@
 
 bool lastWasDir = false; // a simple check if the last file was direcotry and now we're in a normal file//
 int dirFiles = 0;
+int dirCount = 0;
+
+
+// ANSI escape sequence for blue text
+#define BLUE_COLOR "\033[34m"
+// ANSI escape sequence to reset text color
+#define RESET_COLOR "\033[0m"
+
+
 /**
  * This method gets the mode of a file and prints the permission of it.
 */
@@ -67,6 +76,7 @@ int countFilesInDirectory(const char *dirname)
 
 static int dirTree(const char *pathname, const struct stat *sbuf, int type, struct FTW *ftwb)
 {   
+    printf(RESET_COLOR);
 
     if (type == FTW_NS)
     {
@@ -74,26 +84,15 @@ static int dirTree(const char *pathname, const struct stat *sbuf, int type, stru
     }
     else
     {
-        // for(int i = 0; i< ftwb->level; ++i)
-        // {
-        //     // if(i == ftwb->level)
-        //         printf("%d",i);
-        // }
         printf("%*s", 4 * ftwb->level - ftwb->level, ""); //indent//
-        
-        // for(int i = 0; i< ftwb->level; ++i)
-        // {
-        //     // if(i == ftwb->level)
-        //         printf("%*s", 1/4 * ftwb->level - ftwb->level -1 , ""); //indent few backwards to fit good//
-        //         // printf("│");
-        // }
-        // printf("%*s", ftwb->level - ftwb->level, ""); //indent//
 
+        --dirFiles; // remove file count from current directory //
+        
         switch (sbuf->st_mode & S_IFMT)
         {
+             
         case S_IFREG: // reg file.
         {   
-            --dirFiles; // remove file from current directory // 
 
             if((lastWasDir && dirFiles == 0) || dirFiles == 0){
                 printf("└──["); 
@@ -104,8 +103,11 @@ static int dirTree(const char *pathname, const struct stat *sbuf, int type, stru
 
             printPermissions(sbuf->st_mode); // prints [xcvxc--xcvxv--xcvxcv]
             struct passwd *owner = getpwuid(sbuf->st_uid); // gets the owner
-            printf(" %s %7ld] ", owner ? owner->pw_name : "unknown", (long)sbuf->st_size); // prints owner and ends of the needed data
+            struct group *grp = getgrgid(sbuf->st_uid); // gets the group
+
+            printf(" %s %s %7ld] ", owner ? owner->pw_name : "unknown", grp ? grp->gr_name : "unknown", (long)sbuf->st_size); // prints owner, group, and ends of the needed data
             printf("%s\n", &pathname[ftwb->base]); // prints file name
+
             lastWasDir = false;
             break;
         }
@@ -116,14 +118,21 @@ static int dirTree(const char *pathname, const struct stat *sbuf, int type, stru
                 printf(".\n");
                 printf("└──["); 
             }
+            else if(dirFiles == 0){ // last file in directory is a directory//
+                printf("└──[");
+            }
             else{
                 printf("├──[");
             }
              
             printPermissions(sbuf->st_mode); // prints [xcvxc--xcvxv--xcvxcv]
             struct passwd *owner = getpwuid(sbuf->st_uid); // gets the owner
-            printf(" %s %7ld] ", owner ? owner->pw_name : "unknown", (long)sbuf->st_size); // prints owner and ends of the needed data
+            struct group *grp = getgrgid(sbuf->st_uid); // gets the group
+
+            printf(" %s %s %7ld] ", owner ? owner->pw_name : "unknown", grp ? grp->gr_name : "unknown", (long)sbuf->st_size); // prints owner, group, and ends of the needed data            
+            printf(BLUE_COLOR);
             printf("%s/\n", &pathname[ftwb->base]); // prints file name
+            
             lastWasDir = true;
 
             /*we do this to get the amount of files in directory for smooth printing*/
@@ -138,8 +147,6 @@ static int dirTree(const char *pathname, const struct stat *sbuf, int type, stru
     }
     return 0;
 }
-
-
 
 int main(int argc, char *argv[])
 {
